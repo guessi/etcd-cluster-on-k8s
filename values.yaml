@@ -1,0 +1,53 @@
+# for demonstration, here I only write down minimized values for HA setup.
+# for the full specification of values.yaml, please check the link below,
+#
+# ref: https://github.com/bitnami/charts/tree/master/bitnami/etcd
+
+# override the names as `etcd`, simply because it would be easier for demonstration.
+nameOverride: "etcd"
+fullnameOverride: "etcd"
+
+# if replicas changed from (N) to (N - 1) and back to (N), it will failed to join cluster.
+# need explicitly set `removeMemberOnContainerTermination` to `false` and problem should gone.
+#
+# ref: https://github.com/bitnami/charts/issues/10935
+# ref: https://github.com/bitnami/charts/issues/8233
+# ref: https://etcd.io/docs/v3.5/faq/#should-i-add-a-member-before-removing-an-unhealthy-member
+# ref: https://etcd.io/docs/v3.5/faq/#why-wont-etcd-accept-my-membership-changes
+removeMemberOnContainerTermination: false
+
+# ref: https://etcd.io/docs/v3.5/faq/#why-an-odd-number-of-cluster-members
+# ref: https://etcd.io/docs/v3.5/faq/#what-is-maximum-cluster-size
+# ref: https://etcd.io/docs/v3.5/faq/#what-is-failure-tolerance
+replicaCount: 3
+
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#update-strategies
+updateStrategy:
+  type: RollingUpdate
+
+## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
+podManagementPolicy: OrderedReady
+
+# required each pods to be run on different nodes
+# ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
+podAntiAffinityPreset: hard
+
+# for demonstration purpose and cost saving, we use (500m, 1Gi) only.
+# it is NOT recommend for production use cases, you should check the references before it goes to production.
+#
+# ref: https://etcd.io/docs/v3.5/faq/#system-requirements
+# ref: https://etcd.io/docs/v3.5/op-guide/hardware/
+resources:
+  requests:
+     cpu: 500m
+     memory: 1Gi
+  limits:
+     cpu: 500m
+     memory: 1Gi
+
+persistence:
+  enabled: true
+  storageClass: "gp2"
+  size: 8Gi
+  accessModes:
+    - ReadWriteOnce
